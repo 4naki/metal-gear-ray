@@ -551,7 +551,7 @@ if (first()) {
     #ifdef httpRequest(string)
         Link = "https://github.com/4naki/metal-gear-ray/blob/main/Metal%20Gear%20Ray"
         VersionCheckLink = "https://raw.githubusercontent.com/4naki/metal-gear-ray/main/version"
-        Version = "1.5"
+        Version = "1.6"
         
         runOnHTTP(1)
         if(Link!=""){
@@ -972,7 +972,7 @@ if (first()) {
         if(I==1){
             holoAng(I+32, Base:toWorld((TailAngles[I,angle]*ang(1,0,1))+ang(TailCurve[I,number],0,0)))
         }else{
-           holoAng(I+32, Base:toWorld((TailAngles[I,angle]*ang(1+(I/4),1+(I),1))+ang(TailCurve[I,number],25*(Yaw/55),0)))
+           holoAng(I+32, Base:toWorld((TailAngles[I,angle]*ang(1+(I/4),1+(I),1))+ang(TailCurve[I,number],25*(Yaw/55)*(I/4),0)))
         }
     }
 }
