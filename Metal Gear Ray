@@ -456,7 +456,7 @@ if (first()) {
     #ifdef httpRequest(string)
         Link = "https://github.com/4naki/metal-gear-ray/blob/main/Metal%20Gear%20Ray"
         VersionCheckLink = "https://raw.githubusercontent.com/4naki/metal-gear-ray/main/version"
-        Version = "1.0"
+        Version = "1.2"
         
         runOnHTTP(1)
         if(Link!=""){
@@ -820,8 +820,14 @@ if (first()) {
     }
     #-- mech
             if(!On_Ground){
+                Left_p_next=Base:toWorld(vec(55,95,-350))
+                Right_p_next=Base:toWorld(vec(55,-95,-350))
+                Left_p_last=Base:toWorld(vec(55,95,-350))
+                Right_p_last=Base:toWorld(vec(55,-95,-350))
                 Left_p_real=Base:toWorld(vec(55,95,-350))
                 Right_p_real=Base:toWorld(vec(55,-95,-350))
+                Left_time=0
+                Right_time=0
             }
             holoPos(1,Left_p_real)
             holoAng(1,Left_a_real)
@@ -900,6 +906,15 @@ if(IsJumping){
             IsJumping=0
             RangerCheck=0
             JumpVal3=0
+            
+            Left_p_next=Base:toWorld(vec(55,abs(Leg_Pos_Offset:y()-145),-350))
+            Right_p_next=Base:toWorld(vec(55,-abs(Leg_Pos_Offset:y()-145),-350))
+            Left_p_last=Base:toWorld(vec(55,abs(Leg_Pos_Offset:y()-145),-350))
+            Right_p_last=Base:toWorld(vec(55,-abs(Leg_Pos_Offset:y()-145),-350))
+            Left_p_real=Base:toWorld(vec(55,abs(Leg_Pos_Offset:y()-145),-350))
+            Right_p_real=Base:toWorld(vec(55,-abs(Leg_Pos_Offset:y()-145),-350))
+            Left_time=0
+            Right_time=0
         }
     }
 }
