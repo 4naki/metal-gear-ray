@@ -29,6 +29,10 @@
 #-- jumping values
 @persist RangerCheck JumpVal JumpVal2 JumpVal3 JumpVal4 IsJumping JumpWait BlockApplyForceDef [LeftPos RightPos]:vector
 
+#-- tail
+@inputs [Tail_Joint1 Tail_Joint2 Tail_Joint3 Tail_Joint4 Tail_Joint5 Tail_Joint6 Tail_Joint7]:entity
+@persist TailLength [TailAngles TailCurve]:array TailAngle:angle 
+
 @trigger none
 #-- animation base by shadowscion
 
@@ -130,7 +134,16 @@ if (first()) {
     Right_p_last = Right_p_next = Right_p_real = entity():toWorld(Right_p_foot)
     
     BonesVisible = 0
-
+    
+    
+    TailCurve[1,number]=-35
+    TailCurve[2,number]=-25
+    TailCurve[3,number]=-15
+    TailCurve[4,number]=-5
+    TailCurve[5,number]=(10/3)*1
+    TailCurve[6,number]=(10/3)*2
+    TailCurve[7,number]=10
+    
     for (I = 1,3) {
         holoCreate(I)
         holoModel(I,"models/sprops/misc/axis_plane.mdl")
@@ -440,7 +453,88 @@ if (first()) {
     for(I=1,Children:count()){
         Children[I,entity]:parentTo(Nose_Cover_Right)
     }
-    local Array = array(Neck1,Neck2,Neck3,Head,Joint_Left_1,Joint_Right_1,Joint_Left_2,Joint_Right_2,Cover_Left,Cover_Right,Pelvis_Left,Pelvis_Right,Thigh_R,Thigh_L,Knee_R,Knee_L,Leg_R,Leg_L,Jaw,Cheek_Left,Cheek_Right,Nose_Cover_Left,Nose_Cover_Right)
+    
+    
+    holoCreate(33,Tail_Joint1:toWorld(vec(0,0,0)),vec(BonesVisible*0.75),Tail_Joint1:toWorld(ang(0,0,0)),vec(255),"models/sprops/misc/axis_plane.mdl")
+    local Children=Tail_Joint1:children()
+    rangerFilter(Children)
+    Tail_Joint1:parentTo(holoEntity(33))
+    holoPos(33,Base:toWorld(vec(-24,0,-50)))
+    holoAng(33,Base:toWorld(ang(0,0,0)))
+    holoParent(33,Base)
+    for(I=1,Children:count()){
+        Children[I,entity]:parentTo(Tail_Joint1)
+    }
+    
+    holoCreate(34,Tail_Joint2:toWorld(vec(0,0,0)),vec(BonesVisible*0.75),Tail_Joint2:toWorld(ang(0,0,0)),vec(255),"models/sprops/misc/axis_plane.mdl")
+    local Children=Tail_Joint2:children()
+    rangerFilter(Children)
+    Tail_Joint2:parentTo(holoEntity(34))
+    holoPos(34,holoEntity(33):toWorld(vec(-110+7.5,0,0)))
+    holoAng(34,holoEntity(33):toWorld(ang(0,0,0)))
+    holoParent(34,holoEntity(33))
+    for(I=1,Children:count()){
+        Children[I,entity]:parentTo(Tail_Joint2)
+    }
+    
+    holoCreate(35,Tail_Joint3:toWorld(vec(0,0,0)),vec(BonesVisible*0.75),Tail_Joint3:toWorld(ang(0,0,0)),vec(255),"models/sprops/misc/axis_plane.mdl")
+    local Children=Tail_Joint3:children()
+    rangerFilter(Children)
+    Tail_Joint3:parentTo(holoEntity(35))
+    holoPos(35,holoEntity(34):toWorld(vec(-128,0,0)))
+    holoAng(35,holoEntity(34):toWorld(ang(0,0,0)))
+    holoParent(35,holoEntity(34))
+    for(I=1,Children:count()){
+        Children[I,entity]:parentTo(Tail_Joint3)
+    }
+    
+    holoCreate(36,Tail_Joint4:toWorld(vec(0,0,0)),vec(BonesVisible*0.75),Tail_Joint4:toWorld(ang(0,0,0)),vec(255),"models/sprops/misc/axis_plane.mdl")
+    local Children=Tail_Joint4:children()
+    rangerFilter(Children)
+    Tail_Joint4:parentTo(holoEntity(36))
+    holoPos(36,holoEntity(35):toWorld(vec(-130,0,0)))
+    holoAng(36,holoEntity(35):toWorld(ang(0,0,0)))
+    holoParent(36,holoEntity(35))
+    for(I=1,Children:count()){
+        Children[I,entity]:parentTo(Tail_Joint4)
+    }
+    
+    holoCreate(37,Tail_Joint5:toWorld(vec(0,0,0)),vec(BonesVisible*0.75),Tail_Joint5:toWorld(ang(0,0,0)),vec(255),"models/sprops/misc/axis_plane.mdl")
+    local Children=Tail_Joint5:children()
+    rangerFilter(Children)
+    Tail_Joint5:parentTo(holoEntity(37))
+    holoPos(37,holoEntity(36):toWorld(vec(-122.5,0,0)))
+    holoAng(37,holoEntity(36):toWorld(ang(0,0,0)))
+    holoParent(37,holoEntity(36))
+    for(I=1,Children:count()){
+        Children[I,entity]:parentTo(Tail_Joint5)
+    }
+    
+    holoCreate(38,Tail_Joint6:toWorld(vec(0,0,0)),vec(BonesVisible*0.75),Tail_Joint6:toWorld(ang(0,0,0)),vec(255),"models/sprops/misc/axis_plane.mdl")
+    local Children=Tail_Joint6:children()
+    rangerFilter(Children)
+    Tail_Joint6:parentTo(holoEntity(38))
+    holoPos(38,holoEntity(37):toWorld(vec(-116,0,0)))
+    holoAng(38,holoEntity(37):toWorld(ang(0,0,0)))
+    holoParent(38,holoEntity(37))
+    for(I=1,Children:count()){
+        Children[I,entity]:parentTo(Tail_Joint6)
+    }
+     
+    holoCreate(39,Tail_Joint7:toWorld(vec(0,0,0)),vec(BonesVisible*0.75),Tail_Joint7:toWorld(ang(0,0,0)),vec(255),"models/sprops/misc/axis_plane.mdl")
+    local Children=Tail_Joint7:children()
+    rangerFilter(Children)
+    Tail_Joint7:parentTo(holoEntity(39))
+    holoPos(39,holoEntity(38):toWorld(vec(-110,0,0)))
+    holoAng(39,holoEntity(38):toWorld(ang(0,0,0)))
+    holoParent(39,holoEntity(38))
+    for(I=1,Children:count()){
+        Children[I,entity]:parentTo(Tail_Joint7)
+    }
+    for (I = 1, 7) { 
+        TailAngles[I, angle] = Base:angles()
+    }
+    local Array = array(Tail_Joint1,Tail_Joint2,Tail_Joint3,Tail_Joint4,Tail_Joint5,Tail_Joint6,Tail_Joint7,Neck1,Neck2,Neck3,Head,Joint_Left_1,Joint_Right_1,Joint_Left_2,Joint_Right_2,Cover_Left,Cover_Right,Pelvis_Left,Pelvis_Right,Thigh_R,Thigh_L,Knee_R,Knee_L,Leg_R,Leg_L,Jaw,Cheek_Left,Cheek_Right,Nose_Cover_Left,Nose_Cover_Right)
     for(I=1,Array:count()){
         Array[I,entity]:setAlpha(0)
     }
@@ -449,6 +543,7 @@ if (first()) {
     rangerFilter(array(Joint_Left_1,Joint_Right_1,Joint_Left_2,Joint_Right_2,Cover_Left,Cover_Right))
     rangerFilter(array(Pelvis_Left,Pelvis_Right,Thigh_R,Thigh_L,Knee_R,Knee_L,Leg_R,Leg_L))
     rangerFilter(array(Jaw,Cheek_Left,Cheek_Right,Nose_Cover_Left,Nose_Cover_Right))
+    rangerFilter(array(Tail_Joint1,Tail_Joint2,Tail_Joint3,Tail_Joint4,Tail_Joint5,Tail_Joint6,Tail_Joint7))
     timer("update",500)
     
     #Update check code
@@ -456,7 +551,7 @@ if (first()) {
     #ifdef httpRequest(string)
         Link = "https://github.com/4naki/metal-gear-ray/blob/main/Metal%20Gear%20Ray"
         VersionCheckLink = "https://raw.githubusercontent.com/4naki/metal-gear-ray/main/version"
-        Version = "1.2"
+        Version = "1.5"
         
         runOnHTTP(1)
         if(Link!=""){
@@ -862,6 +957,24 @@ if (first()) {
     
     holoAng(22,holoEntity(20):toWorld(ang(15,42+(5*JumpVal4/100)+(15*(Yaw/55)),5+(15*JumpVal4/100)+(8*(Yaw/55)))))
     holoAng(23,holoEntity(20):toWorld(ang(15,-42-(5*JumpVal4/100)+(15*(Yaw/55)),-5-(15*JumpVal4/100)+(8*(Yaw/55)))))
+    
+    #tail
+    
+    local VelW = Base:vel()
+    local VelL = Base:velL()
+    
+    TailAngle = ang(-clamp((VelW:z()-(Base:angVel():pitch()*1)) / 35,-25,25), clamp((VelL:y()-(Base:angVel():yaw()*1)) / 45,-15,15), 0)
+    TailAngles:unshiftAngle(TailAngle)
+    TailAngles:removeAngle(7 + 1)
+    
+    
+    for (I = 1, 7) {
+        if(I==1){
+            holoAng(I+32, Base:toWorld((TailAngles[I,angle]*ang(1,0,1))+ang(TailCurve[I,number],0,0)))
+        }else{
+           holoAng(I+32, Base:toWorld((TailAngles[I,angle]*ang(1+(I/4),1+(I),1))+ang(TailCurve[I,number],25*(Yaw/55),0)))
+        }
+    }
 }
            
 JumpVal4=JumpVal3-(Base:vel():z()*(0.13/(1+!BlockApplyForceDef)))
