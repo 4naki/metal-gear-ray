@@ -532,6 +532,18 @@ if (first()) {
     for(I=1,Children:count()){
         Children[I,entity]:parentTo(Tail_Joint7)
     }
+    
+    holoCreate(40)
+    holoPos(40,holoEntity(21):toWorld(vec(1500,0,0)))
+    holoAng(40,holoEntity(21):toWorld(ang(90,0,0)))
+    holoParent(40,holoEntity(21))
+    
+    holoModel(40,"models/sprops/cylinders/size_5/cylinder_12x480.mdl")
+    holoScale(40,vec(0.35,0.35,6))
+    holoMaterial(40,"models/debug/debugwhite")
+    holoColor(40,(vec(5,15,175)*2)+(vec(255)*0.6))
+    holoAlpha(40,0)
+    
     for (I = 1, 7) { 
         TailAngles[I, angle] = Base:angles()
     }
@@ -555,7 +567,7 @@ if (first()) {
     #ifdef httpRequest(string)
         Link = "https://github.com/4naki/metal-gear-ray/blob/main/Metal%20Gear%20Ray"
         VersionCheckLink = "https://raw.githubusercontent.com/4naki/metal-gear-ray/main/version"
-        Version = "1.9"
+        Version = "2.0"
         
         runOnHTTP(1)
         if(Link!=""){
@@ -660,13 +672,13 @@ if (first()) {
     
     if(Open){
         if(OpenVal<100){
-            OpenVal+=100/15
+            OpenVal+=100/10
         }elseif(OpenVal>100){
             OpenVal=100
         }
     }else{
         if(OpenVal>0){
-            OpenVal-=100/15
+            OpenVal-=100/10
         }elseif(OpenVal<0){
             OpenVal=0
         }
@@ -717,6 +729,13 @@ if (first()) {
     holoAng(30,holoEntity(21):toWorld(ang(0,-35*(OpenVal/100),0)))
     holoAng(31,holoEntity(21):toWorld(ang(0,45*(OpenVal/100),0)))
     holoAng(32,holoEntity(21):toWorld(ang(0,-45*(OpenVal/100),0)))
+    
+    if(changed(Fire)){
+        holoAlpha(40,255*Fire*Open*(OpenVal>25))
+    }
+    if(OpenVal>25&Open&Fire){
+        timer("dmgbeam",250)
+    }
     
     Dir = Base:vel()
     Mech_ang = Base:toWorld(ang(0,0,0))
@@ -1089,6 +1108,19 @@ if(IsJumping){
             Right_time=0
         }
     }
+}
+if(clk("dmgbeam")){
+    DMGEnt=propSpawn("models/props_phx/ww2bomb.mdl",ang(0,0,0),1)
+    DMGEnt:propFreeze(1)
+    DMGEnt:setAlpha(0)
+    #ifdef entity:setNoCollideAll(number)
+        DMGEnt:setNoCollideAll(1)
+    #endif
+    #ifdef entity:setNoCollideAll()
+        DMGEnt:setNoCollideAll()
+    #endif
+    DMGEnt:setPos(rangerOffset(9999,holoEntity(21):toWorld(vec(125,0,0)),holoEntity(21):forward()):pos())
+    DMGEnt:propBreak()
 }
 if(changed(Seat:driver())){
     if(Seat:driver()){
