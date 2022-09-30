@@ -555,7 +555,7 @@ if (first()) {
     #ifdef httpRequest(string)
         Link = "https://github.com/4naki/metal-gear-ray/blob/main/Metal%20Gear%20Ray"
         VersionCheckLink = "https://raw.githubusercontent.com/4naki/metal-gear-ray/main/version"
-        Version = "1.7"
+        Version = "1.8"
         
         runOnHTTP(1)
         if(Link!=""){
@@ -1009,7 +1009,7 @@ if (first()) {
     holoAng(26,holoEntity(22):toWorld(ang(0,0,-45*(DockVal2/100))))
     holoAng(27,holoEntity(23):toWorld(ang(0,0,45*(DockVal2/100))))
         
-    if(Docked){
+    if(DockVal3!=0){
         holoAng(12,Base:toWorld(ang(15*(DockVal3/100),0,0)))
         holoAng(13,holoEntity(12):toWorld(ang(3*(DockVal3/100),0,0)))
         holoAng(20,holoEntity(13):toWorld(ang(0*(DockVal3/100),0,0)))
