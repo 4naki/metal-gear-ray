@@ -1,5 +1,5 @@
 @name Metal Gear Ray
-@inputs [Base Seat Neck1 Neck2 Neck3 Head]:entity CamAng:angle W2 S2 Shift2 Crouch2 Jump2 CamAng2:angle
+@inputs [Base Seat Neck1 Neck2 Neck3 Head]:entity CamAng:angle W2 S2 Shift2 Crouch2 Jump2 Dock2 CamAng2:angle
 @outputs CamPos:vector CamParent:entity CamDistance Active Fire1 Fire2 WeaponMode StepZ
 #-- mouth pieces
 @inputs [Jaw Cheek_Left Cheek_Right Nose_Cover_Left Nose_Cover_Right]:entity
@@ -8,7 +8,8 @@
 #-- legs bones
 @inputs [Pelvis_Left Pelvis_Right Thigh_R Thigh_L Knee_R Knee_L Leg_R Leg_L]:entity
 #-- core variables
-@persist [Time_delta Time_current] [Down Left]:vector [Ang AngStore]:angle Inertia:angle Mass CamPos:vector CamDistance Active A3 Editmode Duck Open OpenVal Aim
+@persist [DockVal DockVal2 DockVal3 Docked Time_delta Time_current] [Down Left]:vector [Ang AngStore]:angle Inertia:angle Mass CamPos:vector CamDistance Active A3 Editmode Duck Open OpenVal Aim
+@outputs DockVal DockVal2 DockVal3 Docked
 #-- mech variables
 @persist [Mech_height Mech_speed Mech_gait_time Mech_gait_transition Step] [Mech_pos Mech_vel Leg_Pos_Offset]:vector [Align]:angle [Mech_gaits]:table [Mech_gait_last Mech_gait_next Leg_Rotations]:array BonesVisible StepDistance StepDistanceRunReduceMult Base_Speed Run_Speed_Mult Crouch_Speed_Reduce_Mult Crouch_Run_Speed_Reduce_Mult Speed_Mult StepSound:string
 #-- feet variables
@@ -544,6 +545,9 @@ if (first()) {
     rangerFilter(array(Pelvis_Left,Pelvis_Right,Thigh_R,Thigh_L,Knee_R,Knee_L,Leg_R,Leg_L))
     rangerFilter(array(Jaw,Cheek_Left,Cheek_Right,Nose_Cover_Left,Nose_Cover_Right))
     rangerFilter(array(Tail_Joint1,Tail_Joint2,Tail_Joint3,Tail_Joint4,Tail_Joint5,Tail_Joint6,Tail_Joint7))
+    
+    Docked=1
+    
     timer("update",500)
     
     #Update check code
@@ -551,7 +555,7 @@ if (first()) {
     #ifdef httpRequest(string)
         Link = "https://github.com/4naki/metal-gear-ray/blob/main/Metal%20Gear%20Ray"
         VersionCheckLink = "https://raw.githubusercontent.com/4naki/metal-gear-ray/main/version"
-        Version = "1.6"
+        Version = "1.7"
         
         runOnHTTP(1)
         if(Link!=""){
@@ -607,9 +611,9 @@ if (first()) {
         
         Switch = Seat:driver():keyReload()
         
-        AimButton = Seat:driver():keyAttack2()
+        AimButton = Seat:driver():keyPressed("f")
         
-        OpenButton = Seat:driver():keyPressed("f")
+        OpenButton = Seat:driver():keyAttack2()
         
         CamAng3=CamAng
         
@@ -626,12 +630,14 @@ if (first()) {
 
         Fire = 0
         
+        AimButton = Dock2
+        
         CamAng3=CamAng2
         
         Space = Jump2
     }
     
-    if(changed(Space)&Space&!IsJumping){
+    if(changed(Space)&Space&!IsJumping&!Docked){
         IsJumping=1
         JumpWait=1
         timer("jump",100)
@@ -648,7 +654,7 @@ if (first()) {
     }
     
     if(changed(AimButton)&AimButton){
-        Aim=!Aim
+        Docked=!Docked
     }
     
     if(Open){
@@ -691,20 +697,20 @@ if (first()) {
     }
     Gun_Speed_Mod += 0.06 * (Moving - Gun_Speed_Mod)
     
-    Yaw += clamp(-Bearing, -Gun_Speed_Mod * 8, Gun_Speed_Mod * 8)*Active
+    Yaw += clamp(-Bearing, -Gun_Speed_Mod * 8, Gun_Speed_Mod * 8)*Active*!Docked
     if(55 < 180){
-        Yaw = clamp(Yaw, -55, 75)*Active
+        Yaw = clamp(Yaw, -55, 75)*Active*!Docked
     }
     
     
-    Pitch += clamp(-Elevation, -Gun_Speed_Mod * 8, Gun_Speed_Mod * 8)*Active
-    Pitch = clamp(Pitch, -45, 45)*Active
-    
-    holoAng(12,Base:toWorld(ang((Pitch/5)*Active,(Yaw/5)*Active,0)))
-    holoAng(13,holoEntity(12):toWorld(ang(Pitch/4,Yaw/4,0)))
-    holoAng(20,holoEntity(13):toWorld(ang(Pitch/5,Yaw/5,0)))
-    holoAng(21,holoEntity(20):toWorld(ang(Pitch/3,Yaw/3,0)))
-    
+    Pitch += clamp(-Elevation, -Gun_Speed_Mod * 8, Gun_Speed_Mod * 8)*Active*!Docked
+    Pitch = clamp(Pitch, -45, 45)*Active*!Docked
+    if(!Docked&(DockVal3==0)){
+        holoAng(12,Base:toWorld(ang((Pitch/5)*Active,(Yaw/5)*Active,0)))
+        holoAng(13,holoEntity(12):toWorld(ang(Pitch/4,Yaw/4,0)))
+        holoAng(20,holoEntity(13):toWorld(ang(Pitch/5,Yaw/5,0)))
+        holoAng(21,holoEntity(20):toWorld(ang(Pitch/3,Yaw/3,0)))
+    }
     holoAng(28,holoEntity(21):toWorld(ang(35*(OpenVal/100),0,0)))
     holoAng(29,holoEntity(21):toWorld(ang(0,35*(OpenVal/100),0)))
     holoAng(30,holoEntity(21):toWorld(ang(0,-35*(OpenVal/100),0)))
@@ -727,11 +733,11 @@ if (first()) {
     
     local Movement_Direction = (((Base:forward()*(W-S))+(Base:right()*(D-A)))*vec(1,1,0)):normalized()
     
-    if(Movement_Direction:length()>0){
+    if(Movement_Direction:length()>0&Docked==0&DockVal3==0){
         CamAng4=CamAng3
         AngStore=CamAng3
     }else{
-        if(abs(Base:toLocal(CamAng3):yaw())>50){
+        if(abs(Base:toLocal(CamAng3):yaw())>50&Docked==0&DockVal3==0){
             CamAng4=CamAng3
             AngStore=CamAng3
         }else{
@@ -746,7 +752,7 @@ if (first()) {
     
     StepZ = -StepZ_Mult*0.35
     
-    Height_Adj = Mech_height*((0.95/(1+StepZ+(JumpWait*(0.3*(JumpVal3/100)))+clamp(Duck*0.3,0,1.1))))
+    Height_Adj = Mech_height*((0.95/(1+((DockVal3/100)*0.4)+StepZ+(JumpWait*(0.3*(JumpVal3/100)))+clamp(Duck*0.3,0,1.1))))
     
     local Distance = (Ranger_Left_Front:distance()+Ranger_Right_Front:distance())/2
     
@@ -764,7 +770,7 @@ if (first()) {
 
     local Stand_Force=vec(0,0,((Height_Adj)*0.75)-Distance)*1.5
     local Damping_Force=(-Base:vel()*vec(0.2,0.2,0.5))*0.6
-    local Move_Force=(((Movement_Direction)*Base_Speed)*(1+(Sprint*(Run_Speed_Mult*(1-(Crouch_Run_Speed_Reduce_Mult*Duck)))))*Speed_Mult)*(1-(Crouch_Speed_Reduce_Mult*Duck))*!JumpWait
+    local Move_Force=(((Movement_Direction)*Base_Speed)*(1+(Sprint*(Run_Speed_Mult*(1-(Crouch_Run_Speed_Reduce_Mult*Duck)))))*Speed_Mult)*(1-(Crouch_Speed_Reduce_Mult*Duck))*!JumpWait*!Docked
     if(!BlockApplyForceDef){
         Base:applyForce((Base:up()*Stand_Force*Mass)+(Damping_Force+StepY+StepZ+Move_Force)*Mass*On_Ground)
     }elseif(!JumpWait){
@@ -786,11 +792,14 @@ if (first()) {
     RotationRight = ((Leg_Rotations[1,number]*clamp(1-((Dir*vec(1,1,0)):length()*0),0,1))+Leg_Rotations[3,number]*Duck)
     RotationLeft = ((Leg_Rotations[2,number]*clamp(1-((Dir*vec(1,1,0)):length()*0),0,1))+Leg_Rotations[4,number]*Duck)
     
+    RotationRight2=RotationRight+(15*(DockVal3/100))
+    RotationLeft2=RotationLeft-(15*(DockVal3/100))
+    
     #right leg
-    ik(Base, 14, 4, 6, 7, 8, LengthA, LengthB*0.9, LengthC, holoEntity(14), Ent2Pos+vec(0,0,15), On_Ground, 90, RotationRight*!Editmode,(Right_a_real*ang(1,0,1)))
+    ik((-35*(DockVal3/100)),Base, 14, 4, 6, 7, 8, LengthA, LengthB*0.9, LengthC, holoEntity(14), Ent2Pos+vec(0,0,15), On_Ground, 90, RotationRight2*!Editmode,(Right_a_real*ang(1,0,1)))
     
     #left leg
-    ik(Base, 15, 5, 9, 10, 11, LengthA, LengthB*0.9, LengthC, holoEntity(15), Ent1Pos+vec(0,0,15), On_Ground, 90, RotationLeft*!Editmode,(Left_a_real*ang(1,0,1)))
+    ik((-35*(DockVal3/100)),Base, 15, 5, 9, 10, 11, LengthA, LengthB*0.9, LengthC, holoEntity(15), Ent1Pos+vec(0,0,15), On_Ground, 90, RotationLeft2*!Editmode,(Left_a_real*ang(1,0,1)))
     
     if(!Editmode){
     
@@ -802,161 +811,210 @@ if (first()) {
     }
 
     #-- gait sequencer
-    if(!IsJumping){
-        BlockApplyForceDef=0
-    if (Mech_gait_transition < 1) {
-        
-        Mech_gait_transition = min(Mech_gait_transition + (Time_delta*2.5),1)
+    if(!Docked){
+        if(DockVal2>0){
+            DockVal2-=100/10
+        }
+        if(DockVal2==0){
+            DockVal-=100/10
+        }
+        if(DockVal3==0){
+        if(!IsJumping){
+            BlockApplyForceDef=0
+        if (Mech_gait_transition < 1) {
             
-        Mech_gait_time += ((1 - Mech_gait_transition)*Mech_gait_last[1,number] + Mech_gait_transition*Mech_gait_next[1,number])*Time_delta
-
-        Left_time = gseq((1 - Mech_gait_transition)*Mech_gait_last[3,number] + Mech_gait_transition*Mech_gait_next[3,number],(1 - Mech_gait_transition)*Mech_gait_last[4,number] + Mech_gait_transition*Mech_gait_next[4,number],Mech_gait_time)
-        Right_time = gseq((1 - Mech_gait_transition)*Mech_gait_last[5,number] + Mech_gait_transition*Mech_gait_next[5,number],(1 - Mech_gait_transition)*Mech_gait_last[6,number] + Mech_gait_transition*Mech_gait_next[6,number],Mech_gait_time)
-        Mech_speed = (1 - Mech_gait_transition)*Mech_gait_last[2,number] + Mech_gait_transition*Mech_gait_next[2,number]
-    }
-    else {
-        
-        Mech_gait_time += Mech_gait_next[1,number]*Time_delta
-        
-        Left_time = gseq(Mech_gait_next[3,number],Mech_gait_next[4,number],Mech_gait_time)
-        Right_time = gseq(Mech_gait_next[5,number],Mech_gait_next[6,number],Mech_gait_time)
-        
-        Mech_speed = Mech_gait_next[2,number]
-    }
-    if (Mech_gait_time > 1) {
-        Mech_gait_time--
-    }
-
-    #-- stepgen
-    if (Left_time) {
-        if (!Left_state) {
-            soundStop("FL_step")
-            Left_a_last = Left_a_next
-            Left_p_last = Left_p_next
-            Left_p_move = Mech_vel
-            Left_state = 1
+            Mech_gait_transition = min(Mech_gait_transition + (Time_delta*2.5),1)
+                
+            Mech_gait_time += ((1 - Mech_gait_transition)*Mech_gait_last[1,number] + Mech_gait_transition*Mech_gait_next[1,number])*Time_delta
+    
+            Left_time = gseq((1 - Mech_gait_transition)*Mech_gait_last[3,number] + Mech_gait_transition*Mech_gait_next[3,number],(1 - Mech_gait_transition)*Mech_gait_last[4,number] + Mech_gait_transition*Mech_gait_next[4,number],Mech_gait_time)
+            Right_time = gseq((1 - Mech_gait_transition)*Mech_gait_last[5,number] + Mech_gait_transition*Mech_gait_next[5,number],(1 - Mech_gait_transition)*Mech_gait_last[6,number] + Mech_gait_transition*Mech_gait_next[6,number],Mech_gait_time)
+            Mech_speed = (1 - Mech_gait_transition)*Mech_gait_last[2,number] + Mech_gait_transition*Mech_gait_next[2,number]
         }
-        local Check = Ranger_Left_Front
-        if (Check:hit()) {
-            local Normal = Check:hitNormal()
-            Left_p_next = Check:position() + Normal*Left_groundz
-            local Line = Left_p_next - Left_p_last
-            if (Line:length() > Left_groundz) {
-                Left_p_real = mix(bezier(Left_p_last,mix(Left_p_next,Left_p_last,0.85) + Line:toAngle():up()*Line:length()*Left_stepz,Left_p_next,Left_time),Left_p_real,Left_time)
-                Left_a_next = quat(Normal:cross(Left_p_move):normalized():cross(Normal),Normal)
-                Left_a_real = slerp(quat(Left_a_real),slerp(Left_a_last,Left_a_next*qRotation(Left,sin(180*Left_time)*45),Left_time),Left_time):toAngle()
-
-                if (Left_state == 1) {
-                    Left_state = 2
-                }
-                LeftVal=sin(180*(-Left_time+Right_time))
-                soundVolume("FL_move",0.75 - 0.75*Left_time)
-                soundPitch("FL_move",50 - 10*Left_time)
-            }else{
-                LeftVal=0
-            }
-        }
-    }
-    elseif (Left_state) {
-        LeftVal=0
-        if (Left_state == 2) {
-            if (Left_ent) {
-                soundStop("FL_move")
-                Left_ent:soundPlay("FL_step",0,StepSound)
-                Step=100
-            }
-        }
-        Left_p_real = Left_p_next
-        Left_a_real = Left_a_next:toAngle()
-        Left_state = 0
-    }
-    #-- stepgen
-    if (Right_time) {
-        if (!Right_state) {
-            soundStop("FR_step")
-            Right_a_last = Right_a_next
-            Right_p_last = Right_p_next
-            Right_p_move = Mech_vel
-            Right_state = 1
-        }
-        local Check = Ranger_Right_Front
-        if (Check:hit()) {
-            local Normal = Check:hitNormal()
-            Right_p_next = Check:position() + Normal*Right_groundz
-            local Line = Right_p_next - Right_p_last
-            if (Line:length() > Right_groundz) {
-                Right_p_real = mix(bezier(Right_p_last,mix(Right_p_next,Right_p_last,0.85) + Line:toAngle():up()*Line:length()*Right_stepz,Right_p_next,Right_time),Right_p_real,Right_time)
-                Right_a_next = quat(Normal:cross(Right_p_move):normalized():cross(Normal),Normal)
-                Right_a_real = slerp(quat(Right_a_real),slerp(Right_a_last,Right_a_next*qRotation(Left,sin(180*Right_time)*45),Right_time),Right_time):toAngle()
-
-                if (Right_state == 1) {
-                    Right_state = 2
-                }
-                RightVal=sin(-180*(-Left_time+Right_time))
-                soundVolume("FR_move",0.75 - 0.75*Right_time)
-                soundPitch("FR_move",50 - 10*Right_time)
-            }else{
-                RightVal=0
-            }
-        }
-    }
-    elseif (Right_state) {
-        RightVal=0
-        if (Right_state == 2) {
-            if (Right_ent) {
-                soundStop("FR_move")
-                Right_ent:soundPlay("FR_step",0,StepSound)
-                Step=100
-            }
-        }
-        Right_p_real = Right_p_next
-        Right_a_real = Right_a_next:toAngle()
-        Right_state = 0
-    }
-    #-- mech
-            if(!On_Ground){
-                Left_p_next=Base:toWorld(vec(55,95,-350))
-                Right_p_next=Base:toWorld(vec(55,-95,-350))
-                Left_p_last=Base:toWorld(vec(55,95,-350))
-                Right_p_last=Base:toWorld(vec(55,-95,-350))
-                Left_p_real=Base:toWorld(vec(55,95,-350))
-                Right_p_real=Base:toWorld(vec(55,-95,-350))
-                Left_time=0
-                Right_time=0
-            }
-            holoPos(1,Left_p_real)
-            holoAng(1,Left_a_real)
-        
-            holoPos(2,Right_p_real)
-            holoAng(2,Right_a_real)
+        else {
             
-            LeftPos=Base:toLocal(Left_p_real)
-            RightPos=Base:toLocal(Right_p_real)
+            Mech_gait_time += Mech_gait_next[1,number]*Time_delta
             
-        }else{
-            if(!JumpWait){
-                holoPos(1,mix(Base:toWorld(vec(55+((Base:velL():x()-Base:vel():z())*0.1),95,-350+(Base:vel():z()*0.1))),Base:toWorld(LeftPos),JumpVal2/100))
-                holoPos(2,mix(Base:toWorld(vec(55+((Base:velL():x()-Base:vel():z())*0.1),-95,-350+(Base:vel():z()*0.1))),Base:toWorld(RightPos),JumpVal2/100))
-            }
+            Left_time = gseq(Mech_gait_next[3,number],Mech_gait_next[4,number],Mech_gait_time)
+            Right_time = gseq(Mech_gait_next[5,number],Mech_gait_next[6,number],Mech_gait_time)
+            
+            Mech_speed = Mech_gait_next[2,number]
+        }
+        if (Mech_gait_time > 1) {
+            Mech_gait_time--
         }
     
-    local Dist = Dir:length() > 300
-    if (changed(Sprint)) {
-        Mech_gait_transition = 0
-        Mech_gait_last = Mech_gait_next
-        if (Sprint) {
-            Mech_gait_next = Mech_gaits["run",array]
-        } else { 
-            Mech_gait_next = Mech_gaits["walk",array]
-        }
-    }
+        #-- stepgen
+        if (Left_time) {
+            if (!Left_state) {
+                soundStop("FL_step")
+                Left_a_last = Left_a_next
+                Left_p_last = Left_p_next
+                Left_p_move = Mech_vel
+                Left_state = 1
+            }
+            local Check = Ranger_Left_Front
+            if (Check:hit()) {
+                local Normal = Check:hitNormal()
+                Left_p_next = Check:position() + Normal*Left_groundz
+                local Line = Left_p_next - Left_p_last
+                if (Line:length() > Left_groundz) {
+                    Left_p_real = mix(bezier(Left_p_last,mix(Left_p_next,Left_p_last,0.85) + Line:toAngle():up()*Line:length()*Left_stepz,Left_p_next,Left_time),Left_p_real,Left_time)
+                    Left_a_next = quat(Normal:cross(Left_p_move):normalized():cross(Normal),Normal)
+                    Left_a_real = slerp(quat(Left_a_real),slerp(Left_a_last,Left_a_next*qRotation(Left,sin(180*Left_time)*45),Left_time),Left_time):toAngle()
     
+                    if (Left_state == 1) {
+                        Left_state = 2
+                    }
+                    LeftVal=sin(180*(-Left_time+Right_time))
+                    soundVolume("FL_move",0.75 - 0.75*Left_time)
+                    soundPitch("FL_move",50 - 10*Left_time)
+                }else{
+                    LeftVal=0
+                }
+            }
+        }
+        elseif (Left_state) {
+            LeftVal=0
+            if (Left_state == 2) {
+                if (Left_ent) {
+                    soundStop("FL_move")
+                    Left_ent:soundPlay("FL_step",0,StepSound)
+                    Step=100
+                }
+            }
+            Left_p_real = Left_p_next
+            Left_a_real = Left_a_next:toAngle()
+            Left_state = 0
+        }
+        #-- stepgen
+        if (Right_time) {
+            if (!Right_state) {
+                soundStop("FR_step")
+                Right_a_last = Right_a_next
+                Right_p_last = Right_p_next
+                Right_p_move = Mech_vel
+                Right_state = 1
+            }
+            local Check = Ranger_Right_Front
+            if (Check:hit()) {
+                local Normal = Check:hitNormal()
+                Right_p_next = Check:position() + Normal*Right_groundz
+                local Line = Right_p_next - Right_p_last
+                if (Line:length() > Right_groundz) {
+                    Right_p_real = mix(bezier(Right_p_last,mix(Right_p_next,Right_p_last,0.85) + Line:toAngle():up()*Line:length()*Right_stepz,Right_p_next,Right_time),Right_p_real,Right_time)
+                    Right_a_next = quat(Normal:cross(Right_p_move):normalized():cross(Normal),Normal)
+                    Right_a_real = slerp(quat(Right_a_real),slerp(Right_a_last,Right_a_next*qRotation(Left,sin(180*Right_time)*45),Right_time),Right_time):toAngle()
+    
+                    if (Right_state == 1) {
+                        Right_state = 2
+                    }
+                    RightVal=sin(-180*(-Left_time+Right_time))
+                    soundVolume("FR_move",0.75 - 0.75*Right_time)
+                    soundPitch("FR_move",50 - 10*Right_time)
+                }else{
+                    RightVal=0
+                }
+            }
+        }
+        elseif (Right_state) {
+            RightVal=0
+            if (Right_state == 2) {
+                if (Right_ent) {
+                    soundStop("FR_move")
+                    Right_ent:soundPlay("FR_step",0,StepSound)
+                    Step=100
+                }
+            }
+            Right_p_real = Right_p_next
+            Right_a_real = Right_a_next:toAngle()
+            Right_state = 0
+        }
+        #-- mech
+                if(!On_Ground){
+                    Left_p_next=Base:toWorld(vec(55,95,-350))
+                    Right_p_next=Base:toWorld(vec(55,-95,-350))
+                    Left_p_last=Base:toWorld(vec(55,95,-350))
+                    Right_p_last=Base:toWorld(vec(55,-95,-350))
+                    Left_p_real=Base:toWorld(vec(55,95,-350))
+                    Right_p_real=Base:toWorld(vec(55,-95,-350))
+                    Left_time=0
+                    Right_time=0
+                }
+                holoPos(1,Left_p_real)
+                holoAng(1,Left_a_real)
+            
+                holoPos(2,Right_p_real)
+                holoAng(2,Right_a_real)
+                
+                LeftPos=Base:toLocal(Left_p_real)
+                RightPos=Base:toLocal(Right_p_real)
+                
+            }else{
+                if(!JumpWait){
+                    holoPos(1,mix(Base:toWorld(vec(55+((Base:velL():x()-Base:vel():z())*0.1),95,-350+(Base:vel():z()*0.1))),Base:toWorld(LeftPos),JumpVal2/100))
+                    holoPos(2,mix(Base:toWorld(vec(55+((Base:velL():x()-Base:vel():z())*0.1),-95,-350+(Base:vel():z()*0.1))),Base:toWorld(RightPos),JumpVal2/100))
+                }
+            }
+        
+        local Dist = Dir:length() > 300
+        if (changed(Sprint)) {
+            Mech_gait_transition = 0
+            Mech_gait_last = Mech_gait_next
+            if (Sprint) {
+                Mech_gait_next = Mech_gaits["run",array]
+            } else { 
+                Mech_gait_next = Mech_gaits["walk",array]
+            }
+        }
+        }
+    }else{
+        if(DockVal<100){
+            DockVal+=100/10
+        }
+        if(DockVal==100){
+            DockVal2+=100/10
+        }
+        Left_p_next=Base:toWorld(vec(-25+(95*(1-(DockVal3/100))),abs(Leg_Pos_Offset:y()-65),-350/(1+((DockVal3/100)*0.35))))
+        Right_p_next=Base:toWorld(vec(-25+(95*(1-(DockVal3/100))),-abs(Leg_Pos_Offset:y()-65),-350/(1+((DockVal3/100)*0.35))))
+        Left_p_last=Base:toWorld(vec(-25+(95*(1-(DockVal3/100))),abs(Leg_Pos_Offset:y()-65),-350/(1+((DockVal3/100)*0.35))))
+        Right_p_last=Base:toWorld(vec(-25+(95*(1-(DockVal3/100))),-abs(Leg_Pos_Offset:y()-65),-350/(1+((DockVal3/100)*0.35))))
+        Left_p_real=Base:toWorld(vec(-25+(95*(1-(DockVal3/100))),abs(Leg_Pos_Offset:y()-65),-350/(1+((DockVal3/100)*0.35))))
+        Right_p_real=Base:toWorld(vec(-25+(95*(1-(DockVal3/100))),-abs(Leg_Pos_Offset:y()-65),-350/(1+((DockVal3/100)*0.35))))
+        Left_time=0
+        Right_time=0
+        
+        holoPos(1,Left_p_real)
+        holoAng(1,Left_a_real)
+        
+        holoPos(2,Right_p_real)
+        holoAng(2,Right_a_real)
     }
+    }
+    DockVal=clamp(DockVal,0,100)
+    DockVal2=clamp(DockVal2,0,100)
+    DockVal3=(DockVal+DockVal2)/2
+    
     holoAng(18,holoEntity(3):toWorld(ang(0,0,(-(clamp(Base:vel():z(),-1000,1000)*((0.01*!BlockApplyForceDef)-(0.02*BlockApplyForceDef)))+(-15*(JumpVal3/100)))+5*(LeftVal-RightVal))*clamp((Base:vel()*vec(1,1,0)):length()*0.25,0.15,1)))
     holoAng(19,holoEntity(3):toWorld(ang(0,0,((clamp(Base:vel():z(),-1000,1000)*((0.01*!BlockApplyForceDef)-(0.02*BlockApplyForceDef)))+(15*(JumpVal3/100)))+5*(LeftVal-RightVal))*clamp((Base:vel()*vec(1,1,0)):length()*0.25,0.15,1)))
     
-    holoAng(22,holoEntity(20):toWorld(ang(15,42+(5*JumpVal4/100)+(15*(Yaw/55)),5+(15*JumpVal4/100)+(8*(Yaw/55)))))
-    holoAng(23,holoEntity(20):toWorld(ang(15,-42-(5*JumpVal4/100)+(15*(Yaw/55)),-5-(15*JumpVal4/100)+(8*(Yaw/55)))))
+    LeftSet=ang(15,42+(5*(JumpVal4*!Docked)/100)+(15*(Yaw/55)),5+(15*(JumpVal4*!Docked)/100)+(8*(Yaw/55)))*((100-DockVal)/100)
+    RightSet=ang(15,-42-(5*(JumpVal4*!Docked)/100)+(15*(Yaw/55)),-5-(15*(JumpVal4*!Docked)/100)+(8*(Yaw/55)))*((100-DockVal)/100)
+    
+    holoAng(22,holoEntity(20):toWorld(LeftSet+ang(-18*(DockVal3/100),-5*(DockVal2/100),-7*(DockVal2/100))))
+    holoAng(23,holoEntity(20):toWorld(RightSet+ang(-18*(DockVal3/100),5*(DockVal2/100),7*(DockVal2/100))))
+    
+    holoAng(24,holoEntity(22):toWorld(ang(0,0,-55*(DockVal2/100))))
+    holoAng(25,holoEntity(23):toWorld(ang(0,0,55*(DockVal2/100))))
+    holoAng(26,holoEntity(22):toWorld(ang(0,0,-45*(DockVal2/100))))
+    holoAng(27,holoEntity(23):toWorld(ang(0,0,45*(DockVal2/100))))
+        
+    if(Docked){
+        holoAng(12,Base:toWorld(ang(15*(DockVal3/100),0,0)))
+        holoAng(13,holoEntity(12):toWorld(ang(3*(DockVal3/100),0,0)))
+        holoAng(20,holoEntity(13):toWorld(ang(0*(DockVal3/100),0,0)))
+        holoAng(21,holoEntity(20):toWorld(ang(-7*(DockVal3/100),0,0)))
+    }
     
     #tail
     
