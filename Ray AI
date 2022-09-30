@@ -1,6 +1,6 @@
 @name Ray AI
 @inputs Base:entity
-@outputs W S Shift EyeAngles:angle Crouch Jump
+@outputs W S Shift EyeAngles:angle Crouch Jump Dock
 @persist RefreshRate Move TargetPos:vector Follow Here UseAimPos TargetOverwrite:vector Crouch Run
 @persist Stop TargetPLY:entity StopDistance WalkDistance AimRadius AimRange TooClose CamControllerMode Mouse2Aim CanJump Distance
 @trigger none
@@ -43,6 +43,10 @@ if(chatClk(owner())){
     if(LS[1,string]==".jump"){
         Jump=1
         timer("unjump",100)
+    }
+    if(LS[1,string]==".dock"){
+        Dock=1
+        timer("undock",100)
     }
     if(LS[1,string]==".stay"){
         UseAimPos=0
@@ -109,6 +113,9 @@ if(chatClk(owner())){
 }
 if(clk("unjump")){
     Jump=0
+}
+if(clk("undock")){
+    Dock=0
 }
 if(clk("jump")){
     Jump=1
