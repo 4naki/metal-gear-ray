@@ -119,6 +119,7 @@ if(clk("undock")){
 }
 if(clk("jump")){
     Jump=1
+    timer("unjump",100)
 }
 if(clk("moveagain")){
     Stop=0
@@ -161,6 +162,7 @@ if(UseAimPos==1|Follow==1|Here==1){
                 TargetOverwrite=owner():aimPos()+vec(0,0,owner():height()/2)
             }elseif(changed(owner():keyReload())&owner():keyReload()){
                 Jump=1
+                timer("unjump",100)
                 Stop=1
                 if((Base:vel():length()*0.01<60)){
                     timer("jump",1000)
